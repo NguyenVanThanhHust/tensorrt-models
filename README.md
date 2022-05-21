@@ -4,5 +4,5 @@ Learn from [tensorrtx](https://github.com/wang-xinyu/tensorrtx), [NVIDIA-Sampple
 
 Title | Type | Original link | Implementation | 
 --- | --- | --- | --- |
-MLP | Basic | [tensorrtx/MLP](https://github.com/wang-xinyu/tensorrtx/tree/master/mlp) | [My implementation](MLP) | 
+MLP | Basic | [tensorrtx/MLP](https://github.com/wang-xinyu/tensorrtx/tree/master/mlp) | [My implementation](mlp) | 
 Alextnet | Classification | [tensorrtx/alexnet](https://github.com/wang-xinyu/tensorrtx/tree/master/alexnet) | [My implementation](alexnet) | 
