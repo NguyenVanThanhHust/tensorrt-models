@@ -4,8 +4,8 @@ project(mlp)
 set(CMAKE_CXX_STANDARD 14)
 
 # include and link dirs of tensorrt, you need adapt them if yours are different
-include_directories(/workspace/TensorRT-8.2.4.2/include)
-link_directories(/workspace/TensorRT-8.2.4.2/lib)
+include_directories(/opt/TensorRT-8.6.1.6/include)
+link_directories(/opt/TensorRT-8.6.1.6/lib)
 
 # include and link dirs of cuda for inference
 include_directories(/usr/local/cuda/include)
