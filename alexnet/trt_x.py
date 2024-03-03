@@ -53,7 +53,7 @@ def create_engine(max_batch_size, builder, config, dt):
     data = network.add_input(INPUT_BLOB_NAME, dt, (3, INPUT_H, INPUT_W))
     assert data
 
-    conv1 = network..add_fully_connected(input=data,
+    conv1 = network.add_fully_connected(input=data,
                                     num_output_maps=64,
                                     kernel_shape=(11, 11),
                                     kernel=weight_map["features.0.weight"],
@@ -71,7 +71,7 @@ def create_engine(max_batch_size, builder, config, dt):
     assert pool1
     pool1.stride_nd = (2, 2)
 
-    conv2 = network..add_fully_connected(input=pool1.get_output(0),
+    conv2 = network.add_fully_connected(input=pool1.get_output(0),
                                     num_output_maps=192,
                                     kernel_shape=(5, 5),
                                     kernel=weight_map["features.3.weight"],
@@ -88,7 +88,7 @@ def create_engine(max_batch_size, builder, config, dt):
     assert pool2
     pool2.stride_nd = (2, 2)
 
-    conv3 = network..add_fully_connected(input=pool2.get_output(0),
+    conv3 = network.add_fully_connected(input=pool2.get_output(0),
                                     num_output_maps=384,
                                     kernel_shape=(3, 3),
                                     kernel=weight_map["features.6.weight"],
@@ -99,7 +99,7 @@ def create_engine(max_batch_size, builder, config, dt):
     relu3 = network.add_activation(conv3.get_output(0), type=trt.ActivationType.RELU)
     assert relu3
 
-    conv4 = network..add_fully_connected(input=relu3.get_output(0),
+    conv4 = network.add_fully_connected(input=relu3.get_output(0),
                                     num_output_maps=256,
                                     kernel_shape=(3, 3),
                                     kernel=weight_map["features.8.weight"],
@@ -110,7 +110,7 @@ def create_engine(max_batch_size, builder, config, dt):
     relu4 = network.add_activation(conv4.get_output(0), type=trt.ActivationType.RELU)
     assert relu4
 
-    conv5 = network..add_fully_connected(input=relu4.get_output(0),
+    conv5 = network.add_fully_connected(input=relu4.get_output(0),
                                     num_output_maps=256,
                                     kernel_shape=(3, 3),
                                     kernel=weight_map["features.10.weight"],
