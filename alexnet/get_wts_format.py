@@ -6,10 +6,12 @@ import struct
 from torchsummary import summary
 
 def main():
-    model = torchvision.models.alexnet(pretrained=False)
+    model = torchvision.models.alexnet(weights='AlexNet_Weights.DEFAULT')
 
-    checkpoint = torch.load("./weights/alexnet-owt-7be5be79.pth")
-    model.load_state_dict(checkpoint)
+    file_path = "alexnet-owt-7be5be79.pth"
+    if os.path.isfile(file_path):
+        checkpoint = torch.load(file_path)
+        model.load_state_dict(checkpoint)
     model.eval()
     model = model.cuda()
 

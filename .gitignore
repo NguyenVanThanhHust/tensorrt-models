@@ -1,3 +1,4 @@
+*/*.wts
 */*.engine
 # Prerequisites
 *.d
@@ -161,3 +162,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+alexnet/alexnet-owt-7be5be79.pth
+alexnet/alexnet.onnx
+alexnet/alexnet.trt

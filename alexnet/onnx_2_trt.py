@@ -12,12 +12,14 @@ import tensorrt as trt
 MIN_BATCH_SIZE = 1
 OPT_BATCH_SIZE = 1
 MAX_BATCH_SIZE = 1
+INPUT_NAME = 'input'
+OUTPUT_NAME = 'output'
 
 def load_onnx(model_name):
     """
     Read onnx filepath
     """
-    onnx_path = '%s.onnx' % model_name
+    onnx_path = 'weights/%s.onnx' % model_name
     assert isfile(onnx_path), "Invalid onnx filepath, get {}".format(onnx_path)
     with open(onnx_path, "rb") as handle:
         return handle.read()
@@ -27,10 +29,9 @@ def set_net_batch(network, batch_size):
     The ONNX file might have been generated with a different batch size,
     say, 64.
     """
-    if trt.__version__[0] >= '7':
-        shape = list(network.get_input(0).shape)
-        shape[0] = batch_size
-        network.get_input(0).shape = shape
+    shape = list(network.get_input(0).shape)
+    shape[0] = batch_size
+    network.get_input(0).shape = shape
     return network
 
 
@@ -45,8 +46,7 @@ def build_engine(model_name, do_int8, dla_core, verbose=True):
         return None
 
     TRT_LOGGER = trt.Logger(trt.Logger.VERBOSE) if verbose else trt.Logger()
-    EXPLICIT_BATCH = [] if trt.__version__[0] < '7' else \
-        [1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)]
+    EXPLICIT_BATCH = [1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)]
     with trt.Builder(TRT_LOGGER) as builder, builder.create_network(*EXPLICIT_BATCH) as network, trt.OnnxParser(network, TRT_LOGGER) as parser:
         if do_int8 and not builder.platform_has_fast_int8:
             raise RuntimeError('INT8 not supported on this platform')
@@ -58,7 +58,7 @@ def build_engine(model_name, do_int8, dla_core, verbose=True):
         network = set_net_batch(network, MAX_BATCH_SIZE)
 
         print('Naming the input tensort as "input".')
-        network.get_input(0).name = 'input'
+        network.get_input(0).name = INPUT_NAME
 
         print('Building the TensorRT engine.  This would take a while...')
         print('(Use "--verbose" or "-v" to enable verbose logging.)')
@@ -69,7 +69,7 @@ def build_engine(model_name, do_int8, dla_core, verbose=True):
         config.set_flag(trt.BuilderFlag.FP16)
         profile = builder.create_optimization_profile()
         profile.set_shape(
-            'input',                                # input tensor name
+            INPUT_NAME,                                # input tensor name
             (MIN_BATCH_SIZE, net_c, net_h, net_w),  # min shape
             (OPT_BATCH_SIZE, net_c, net_h, net_w),  # opt shape
             (MAX_BATCH_SIZE, net_c, net_h, net_w))  # max shape
@@ -86,7 +86,7 @@ def build_engine(model_name, do_int8, dla_core, verbose=True):
             config.DLA_core = dla_core
             config.set_flag(trt.BuilderFlag.STRICT_TYPES)
             print('Using DLA core %d.' % dla_core)
-        engine = builder.build_engine(network, config)
+        engine = builder.build_serialized_network(network, config)
 
         if engine is not None:
             print('Completed creating engine.')
@@ -122,7 +122,7 @@ def main():
 
     engine_path = '%s.trt' % args.model
     with open(engine_path, 'wb') as f:
-        f.write(engine.serialize())
+        f.write(engine)
     print('Serialized the TensorRT engine to file: %s' % engine_path)
 
 
