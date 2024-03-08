@@ -1,7 +1,7 @@
 # INSTALL
 Build docker
 ```
-docker build -t deepstream_img -f docker/deepstream_x84_64 .
+docker build -t dev_img -f Dockerfile .
 ```
 
 To debug

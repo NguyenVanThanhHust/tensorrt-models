@@ -165,3 +165,5 @@ dmypy.json
 alexnet/alexnet-owt-7be5be79.pth
 alexnet/alexnet.onnx
 alexnet/alexnet.trt
+resnet/resnet18_trt.pth
+third_party/torch2trt
