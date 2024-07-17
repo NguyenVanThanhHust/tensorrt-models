@@ -12,12 +12,21 @@ include_directories(/usr/local/cuda/include)
 link_directories(/usr/local/cuda/lib64)
 
 # Create link for executable files
-add_executable(mlp mlp.cpp)
+add_executable(build_engine build_engine.cpp)
 
 # linking with nvinfer libraries
-target_link_libraries(mlp nvinfer)
+target_link_libraries(build_engine nvinfer)
 
 # linking with cuda for inference
-target_link_libraries(mlp cudart)
+target_link_libraries(build_engine cudart)
+
+# Create link for executable files
+add_executable(infer infer.cpp)
+
+# linking with nvinfer libraries
+target_link_libraries(infer nvinfer)
+
+# linking with cuda for inference
+target_link_libraries(infer cudart)
 
 add_definitions(-O2 -pthread)
