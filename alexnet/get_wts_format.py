@@ -5,8 +5,9 @@ import os
 import struct
 from torchsummary import summary
 
+
 def main():
-    model = torchvision.models.alexnet(weights='AlexNet_Weights.DEFAULT')
+    model = torchvision.models.alexnet(weights="AlexNet_Weights.DEFAULT")
 
     file_path = "alexnet-owt-7be5be79.pth"
     if os.path.isfile(file_path):
@@ -21,17 +22,18 @@ def main():
     output = model(dummy_input)
     summary(model, (3, 224, 224))
 
-    f = open("alexnet.wts", 'w')
+    f = open("alexnet.wts", "w")
     f.write("{}\n".format(len(model.state_dict().keys())))
-    for k,v in model.state_dict().items():
-        print('key: ', k)
-        print('value: ', v.shape)
+    for k, v in model.state_dict().items():
+        print("key: ", k)
+        print("value: ", v.shape)
         vr = v.reshape(-1).cpu().numpy()
         f.write("{} {}".format(k, len(vr)))
         for vv in vr:
             f.write(" ")
             f.write(struct.pack(">f", float(vv)).hex())
         f.write("\n")
+
 
 if __name__ == "__main__":
     main()

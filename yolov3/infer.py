@@ -9,8 +9,8 @@ import tensorrt as trt
 import pycuda.autoinit
 import pycuda.driver as cuda
 
-INPUT_BLOB_NAME="input"
-OUTPUT_BLOB_NAME="output"
+INPUT_BLOB_NAME = "input"
+OUTPUT_BLOB_NAME = "output"
 
 # Sizes of input and output for TensorRT model
 INPUT_SIZE = 1
@@ -19,9 +19,12 @@ OUTPUT_SIZE = 1
 
 def get_args():
     parser = argparse.ArgumentParser(prog="Simple MLP in Tensor RT")
-    parser.add_argument("--model_path", type=str, default="mlp.engine", help="input wts model file")
+    parser.add_argument(
+        "--model_path", type=str, default="mlp.engine", help="input wts model file"
+    )
     args = parser.parse_args()
     return args
+
 
 def perform_inference(model_path, input_val):
     def do_inference(context, host_input, host_output):
@@ -51,7 +54,7 @@ def perform_inference(model_path, input_val):
         # synchronize the stream to prevent issues
         stream.synchronize()
 
-    # Create a runtime 
+    # Create a runtime
     gLogger = trt.Logger(trt.Logger.INFO)
     runtime = trt.Runtime(gLogger)
     assert runtime
@@ -80,9 +83,12 @@ def perform_inference(model_path, input_val):
     # infer
     do_inference(context, host_input, host_output)
 
-    print(f'\n[INFO]: Predictions using pre-trained model..\n\tInput:\t{input_val}\n\tOutput:\t{host_output[0]:.4f}')
+    print(
+        f"\n[INFO]: Predictions using pre-trained model..\n\tInput:\t{input_val}\n\tOutput:\t{host_output[0]:.4f}"
+    )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = get_args()
     model_path = args.model_path
     perform_inference(model_path=model_path, input_val=4.0)

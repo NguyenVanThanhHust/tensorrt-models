@@ -2,8 +2,8 @@ import numpy as np
 import torch
 import torchvision
 
-if __name__ == '__main__':
-    model = torchvision.models.alexnet(weights='AlexNet_Weights.DEFAULT')
+if __name__ == "__main__":
+    model = torchvision.models.alexnet(weights="AlexNet_Weights.DEFAULT")
     model.eval()
 
     with torch.no_grad():

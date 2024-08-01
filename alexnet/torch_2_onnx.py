@@ -2,11 +2,11 @@ import numpy as np
 import torch
 import torchvision
 
-INPUT_NAME = 'input'
-OUTPUT_NAME = 'output'
+INPUT_NAME = "input"
+OUTPUT_NAME = "output"
 
-if __name__ == '__main__':
-    model = torchvision.models.alexnet(weights='AlexNet_Weights.DEFAULT')
+if __name__ == "__main__":
+    model = torchvision.models.alexnet(weights="AlexNet_Weights.DEFAULT")
     model.eval()
 
     batch_size = 1
@@ -15,16 +15,20 @@ if __name__ == '__main__':
     torch_out = model(x)
 
     # Export the model
-    torch.onnx.export(model,               # model being run
-                    x,                         # model input (or a tuple for multiple inputs)
-                    "alexnet.onnx",   # where to save the model (can be a file or file-like object)
-                    export_params=True,        # store the trained parameter weights inside the model file
-                    opset_version=10,          # the ONNX version to export the model to
-                    do_constant_folding=True,  # whether to execute constant folding for optimization
-                    input_names = [INPUT_NAME],   # the model's input names
-                    output_names = [OUTPUT_NAME], # the model's output names
-                    dynamic_axes={INPUT_NAME : {0 : 'batch_size'},    # variable length axes
-                                    OUTPUT_NAME : {0 : 'batch_size'}})
+    torch.onnx.export(
+        model,  # model being run
+        x,  # model input (or a tuple for multiple inputs)
+        "alexnet.onnx",  # where to save the model (can be a file or file-like object)
+        export_params=True,  # store the trained parameter weights inside the model file
+        opset_version=10,  # the ONNX version to export the model to
+        do_constant_folding=True,  # whether to execute constant folding for optimization
+        input_names=[INPUT_NAME],  # the model's input names
+        output_names=[OUTPUT_NAME],  # the model's output names
+        dynamic_axes={
+            INPUT_NAME: {0: "batch_size"},  # variable length axes
+            OUTPUT_NAME: {0: "batch_size"},
+        },
+    )
 
     import onnx
 
@@ -33,10 +37,21 @@ if __name__ == '__main__':
 
     import onnxruntime
 
-    ort_session = onnxruntime.InferenceSession("alexnet.onnx",  providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
+    ort_session = onnxruntime.InferenceSession(
+        "alexnet.onnx",
+        providers=[
+            "TensorrtExecutionProvider",
+            "CUDAExecutionProvider",
+            "CPUExecutionProvider",
+        ],
+    )
 
     def to_numpy(tensor):
-        return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+        return (
+            tensor.detach().cpu().numpy()
+            if tensor.requires_grad
+            else tensor.cpu().numpy()
+        )
 
     # compute ONNX Runtime output prediction
     ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(x)}

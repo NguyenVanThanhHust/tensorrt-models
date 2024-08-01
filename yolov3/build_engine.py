@@ -5,27 +5,36 @@ import struct
 import numpy as np
 import tensorrt as trt
 
-INPUT_BLOB_NAME="input"
-OUTPUT_BLOB_NAME="output"
+INPUT_BLOB_NAME = "input"
+OUTPUT_BLOB_NAME = "output"
 
 # Sizes of input and output for TensorRT model
 INPUT_SIZE = 1
 OUTPUT_SIZE = 1
 
+
 def get_args():
     parser = argparse.ArgumentParser(prog="YOLOv3 in Tensor RT")
-    parser.add_argument("--input_path", type=str, default="mlp.wts", help="input wts model file")
-    parser.add_argument("--output_path", type=str, default="mlp.engine", help="output path of engine file")
+    parser.add_argument(
+        "--input_path", type=str, default="mlp.wts", help="input wts model file"
+    )
+    parser.add_argument(
+        "--output_path",
+        type=str,
+        default="mlp.engine",
+        help="output path of engine file",
+    )
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     args = parser.parse_args()
     return args
+
 
 def load_weight(input_path):
     assert os.path.isfile(input_path), f"file {input_path} doesn't exist"
     weight_map = {}
     with open(input_path, "r") as f:
         lines = [l.rstrip() for l in f]
-    
+
     # Count for total line of weights
     count = int(lines[0])
     assert count == len(lines) - 1
@@ -50,7 +59,14 @@ def load_weight(input_path):
 
     return weight_map
 
-def create_mlp_engine(builder, input_path, batch_size, config, data_type, ):
+
+def create_mlp_engine(
+    builder,
+    input_path,
+    batch_size,
+    config,
+    data_type,
+):
     weight_map = load_weight(input_path)
 
     # Build empty netwokr using builder
@@ -60,10 +76,12 @@ def create_mlp_engine(builder, input_path, batch_size, config, data_type, ):
     data = network.add_input(INPUT_BLOB_NAME, data_type, (1, 1, INPUT_SIZE))
 
     # add the layer with output size
-    linear = network.add_fully_connected(input=data,
-                                         num_outputs=OUTPUT_SIZE,
-                                         kernel=weight_map['linear.weight'],
-                                         bias=weight_map['linear.bias'])
+    linear = network.add_fully_connected(
+        input=data,
+        num_outputs=OUTPUT_SIZE,
+        kernel=weight_map["linear.weight"],
+        bias=weight_map["linear.bias"],
+    )
     assert linear
 
     # set the name for output layer
@@ -74,7 +92,7 @@ def create_mlp_engine(builder, input_path, batch_size, config, data_type, ):
 
     # set batch size of current builder
     builder.max_batch_size = batch_size
-    
+
     # create the engine with model
     engine = builder.build_engine(network, config)
 
@@ -84,13 +102,14 @@ def create_mlp_engine(builder, input_path, batch_size, config, data_type, ):
 
     return engine
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = get_args()
     input_path = args.input_path
     output_path = args.output_path
     batch_size = args.batch_size
 
-    # Create builder 
+    # Create builder
     gLogger = trt.Logger(trt.Logger.INFO)
     builder = trt.Builder(gLogger)
 
@@ -103,7 +122,7 @@ if __name__ == '__main__':
     # Serialize the engine to a file
     with open(output_path, "wb") as f:
         f.write(engine.serialize())
-    
+
     # Free the memory
     del engine
     del builder
