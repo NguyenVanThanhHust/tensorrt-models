@@ -1,3 +1,0 @@
-[submodule "third_party/torch2trt"]
-	path = third_party/torch2trt
-	url = https://github.com/NVIDIA-AI-IOT/torch2trt.git
