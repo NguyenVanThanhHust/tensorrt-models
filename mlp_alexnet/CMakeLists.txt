@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)  # change the version, if asked by compiler
 project(mlp)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # include and link dirs of tensorrt, you need adapt them if yours are different
 include_directories(/opt/TensorRT-8.6.1.6/include)

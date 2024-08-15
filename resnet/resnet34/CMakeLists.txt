@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)  # change the version, if asked by compiler
-project(mlp)
+project(resnet18)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -9,7 +9,9 @@ link_directories(/opt/TensorRT-8.6.1.6/lib)
 
 # include and link dirs of cuda for inference
 include_directories(/usr/local/cuda/include)
+include_directories(/usr/local/cuda-12.1/include)
 link_directories(/usr/local/cuda/lib64)
+link_directories(/usr/local/cuda-12.1/lib64)
 
 # Create link for executable files
 add_executable(build_engine build_engine.cpp)

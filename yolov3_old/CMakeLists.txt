@@ -5,7 +5,7 @@ project(yolov3)
 add_definitions(-std=c++14)
 
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
 
 find_package(CUDA REQUIRED)
