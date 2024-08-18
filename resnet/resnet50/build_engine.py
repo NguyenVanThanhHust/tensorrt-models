@@ -77,19 +77,16 @@ def addBatchNorm2d(network, weight_map, input, layer_name, eps):
     )
 
 
-def basicBlock(
+def Bottleneck(
     network, weight_map, input, in_channels, out_channels, stride, layer_name
 ):
     conv1 = network.add_convolution_nd(
         input=input,
         num_output_maps=out_channels,
-        kernel_shape=(3, 3),
+        kernel_shape=(1, 1),
         kernel=weight_map[layer_name + "conv1.weight"],
         bias=trt.Weights(),
     )
-    conv1.stride_nd = (stride, stride)
-    conv1.padding_nd = (1, 1)
-
     assert conv1
     bn1 = addBatchNorm2d(
         network, weight_map, conv1.get_output(0), layer_name + "bn1", EPS
@@ -106,6 +103,7 @@ def basicBlock(
         bias=trt.Weights(),
     )
     assert conv2
+    conv2.stride_nd = (stride, stride)
     conv2.padding_nd = (1, 1)
 
     bn2 = addBatchNorm2d(
@@ -113,35 +111,50 @@ def basicBlock(
     )
     assert bn2
 
-    if in_channels != out_channels:
-        conv3 = network.add_convolution_nd(
+    conv3 = network.add_convolution_nd(
+        input=bn2.get_output(0),
+        num_output_maps=out_channels*4,
+        kernel_shape=(1, 1),
+        kernel=weight_map[layer_name + "conv3.weight"],
+        bias=trt.Weights(),
+    )
+
+    assert conv3
+    bn3 = addBatchNorm2d(
+        network, weight_map, conv3.get_output(0), layer_name + "bn3", EPS
+    )
+    assert bn3
+
+
+    if stride != 1 or in_channels != 4 * out_channels:
+        conv4 = network.add_convolution_nd(
             input=input,
-            num_output_maps=out_channels,
+            num_output_maps=out_channels*4,
             kernel_shape=(1, 1),
             kernel=weight_map[layer_name + "downsample.0.weight"],
             bias=trt.Weights(),
         )
-        assert conv3
-        conv3.stride_nd = (stride, stride)
+        assert conv4
+        conv4.stride_nd = (stride, stride)
 
-        bn3 = addBatchNorm2d(
-            network, weight_map, conv3.get_output(0), layer_name + "downsample.1", EPS
+        bn4 = addBatchNorm2d(
+            network, weight_map, conv4.get_output(0), layer_name + "downsample.1", EPS
         )
-        assert bn3
+        assert bn4
 
         ew1 = network.add_elementwise(
-            bn3.get_output(0), bn2.get_output(0), trt.ElementWiseOperation.SUM
+            bn4.get_output(0), bn3.get_output(0), trt.ElementWiseOperation.SUM
         )
     else:
         ew1 = network.add_elementwise(
-            input, bn2.get_output(0), trt.ElementWiseOperation.SUM
+            input, bn3.get_output(0), trt.ElementWiseOperation.SUM
         )
     assert ew1
 
-    relu2 = network.add_activation(ew1.get_output(0), type=trt.ActivationType.RELU)
-    assert relu2
+    relu3 = network.add_activation(ew1.get_output(0), type=trt.ActivationType.RELU)
+    assert relu3
 
-    return relu2
+    return relu3
 
 
 def create_resnet_engine(
@@ -186,25 +199,25 @@ def create_resnet_engine(
     pool1.stride_nd = (2, 2)
     pool1.padding_nd = (1, 1)
 
-    relu2 = basicBlock(network, weight_map, pool1.get_output(0), 64, 64, 1, "layer1.0.")
-    relu3 = basicBlock(network, weight_map, relu2.get_output(0), 64, 64, 1, "layer1.1.")
-    relu4 = basicBlock(network, weight_map, relu3.get_output(0), 64, 64, 1, "layer1.2.")
+    relu2 = Bottleneck(network, weight_map, pool1.get_output(0), 64, 64, 1, "layer1.0.")
+    relu3 = Bottleneck(network, weight_map, relu2.get_output(0), 256, 64, 1, "layer1.1.")
+    relu4 = Bottleneck(network, weight_map, relu3.get_output(0), 256, 64, 1, "layer1.2.")
 
-    relu5 = basicBlock(network, weight_map, relu4.get_output(0), 64, 128, 2, "layer2.0.")
-    relu6 = basicBlock(network, weight_map, relu5.get_output(0), 128, 128, 1, "layer2.1.")
-    relu7 = basicBlock(network, weight_map, relu6.get_output(0), 128, 128, 1, "layer2.2.")
-    relu8 = basicBlock(network, weight_map, relu7.get_output(0), 128, 128, 1, "layer2.3.")
+    relu5 = Bottleneck(network, weight_map, relu4.get_output(0), 256, 128, 2, "layer2.0.")
+    relu6 = Bottleneck(network, weight_map, relu5.get_output(0), 512, 128, 1, "layer2.1.")
+    relu7 = Bottleneck(network, weight_map, relu6.get_output(0), 512, 128, 1, "layer2.2.")
+    relu8 = Bottleneck(network, weight_map, relu7.get_output(0), 512, 128, 1, "layer2.3.")
 
-    relu9 = basicBlock(network, weight_map, relu8.get_output(0), 128, 256, 2, "layer3.0.")
-    relu10 = basicBlock(network, weight_map, relu9.get_output(0), 256, 256, 1, "layer3.1.")
-    relu11 = basicBlock(network, weight_map, relu10.get_output(0), 256, 256, 1, "layer3.2.")
-    relu12 = basicBlock(network, weight_map, relu11.get_output(0), 256, 256, 1, "layer3.3.")
-    relu13 = basicBlock(network, weight_map, relu12.get_output(0), 256, 256, 1, "layer3.4.")
-    relu14 = basicBlock(network, weight_map, relu13.get_output(0), 256, 256, 1, "layer3.5.")
+    relu9 = Bottleneck(network, weight_map, relu8.get_output(0), 512, 256, 2, "layer3.0.")
+    relu10 = Bottleneck(network, weight_map, relu9.get_output(0), 1024, 256, 1, "layer3.1.")
+    relu11 = Bottleneck(network, weight_map, relu10.get_output(0), 1024, 256, 1, "layer3.2.")
+    relu12 = Bottleneck(network, weight_map, relu11.get_output(0), 1024, 256, 1, "layer3.3.")
+    relu13 = Bottleneck(network, weight_map, relu12.get_output(0), 1024, 256, 1, "layer3.4.")
+    relu14 = Bottleneck(network, weight_map, relu13.get_output(0), 1024, 256, 1, "layer3.5.")
 
-    relu15 = basicBlock(network, weight_map, relu14.get_output(0), 256, 512, 2, "layer4.0.")
-    relu16 = basicBlock(network, weight_map, relu15.get_output(0), 512, 512, 1, "layer4.1.")
-    relu17 = basicBlock(network, weight_map, relu16.get_output(0), 512, 512, 1, "layer4.2.")
+    relu15 = Bottleneck(network, weight_map, relu14.get_output(0), 1024, 512, 2, "layer4.0.")
+    relu16 = Bottleneck(network, weight_map, relu15.get_output(0), 2048, 512, 1, "layer4.1.")
+    relu17 = Bottleneck(network, weight_map, relu16.get_output(0), 2048, 512, 1, "layer4.2.")
 
     pool2 = network.add_pooling_nd(
         relu17.get_output(0), window_size=trt.DimsHW(7, 7), type=trt.PoolingType.AVERAGE
