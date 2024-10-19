@@ -1,7 +1,7 @@
 # INSTALL
 Build docker
 ```
-docker build -t tensorrt_dev_img -f Dockerfile .
+docker build -t tensorrt_dev_img -f tensorrt_dev.Dockerfile .
 ```
 
 To debug

@@ -80,6 +80,9 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "memory_resource": "cpp",
+        "__functional_03": "cpp",
+        "__tree": "cpp"
     }
 }

@@ -1,4 +1,5 @@
 */*.wts
+*/*/*.wts
 */*.engine
 # Prerequisites
 *.d
