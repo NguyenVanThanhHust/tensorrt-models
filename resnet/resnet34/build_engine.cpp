@@ -253,6 +253,7 @@ void APIToModel(unsigned int maxBatchSize, IHostMemory **modelStream) {
 
     // free up the memory
     engine->destroy();
+    config->destroy();
     builder->destroy();
 }
 

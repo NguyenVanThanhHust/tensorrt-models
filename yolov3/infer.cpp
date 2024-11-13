@@ -12,8 +12,9 @@ using namespace nvinfer1;
 // Logger from TRT API
 static Logger gLogger;
 
-const int INPUT_SIZE = 1;
-const int OUTPUT_SIZE = 1;
+static const int INPUT_H = 224;
+static const int INPUT_W = 224;
+static const int OUTPUT_SIZE = 1000;
 
 /** ////////////////////////////
 // INFERENCE RELATED //////////
@@ -39,10 +40,10 @@ void doInference(IExecutionContext &context, float *input, float *output, int ba
     // In order to bind the buffers, we need to know the names of the input and output tensors.
     // Note that indices are guaranteed to be less than IEngine::getNbBindings()
     const int inputIndex = engine.getBindingIndex("data");
-    const int outputIndex = engine.getBindingIndex("out");
+    const int outputIndex = engine.getBindingIndex("prob");
 
     // Create GPU buffers on device -- allocate memory for input and output
-    cudaMalloc(&buffers[inputIndex], batchSize * INPUT_SIZE * sizeof(float));
+    cudaMalloc(&buffers[inputIndex], batchSize * 3 * INPUT_H * INPUT_W * sizeof(float));
     cudaMalloc(&buffers[outputIndex], batchSize * OUTPUT_SIZE * sizeof(float));
 
     // create CUDA stream for simultaneous CUDA operations
@@ -50,7 +51,7 @@ void doInference(IExecutionContext &context, float *input, float *output, int ba
     cudaStreamCreate(&stream);
 
     // copy input from host (CPU) to device (GPU)  in stream
-    cudaMemcpyAsync(buffers[inputIndex], input, batchSize * INPUT_SIZE * sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(buffers[inputIndex], input, batchSize * 3 * INPUT_H * INPUT_W * sizeof(float), cudaMemcpyHostToDevice, stream);
 
     // execute inference using context provided by engine
     context.enqueue(batchSize, buffers, stream, nullptr);
@@ -79,7 +80,7 @@ void performInference() {
     size_t size{0};
 
     // read model from the engine file
-    std::ifstream file("mlp.engine", std::ios::binary);
+    std::ifstream file("resnet34.engine", std::ios::binary);
     if (file.good()) {
         file.seekg(0, file.end);
         size = file.tellg();
@@ -89,6 +90,14 @@ void performInference() {
         file.read(trtModelStream, size);
         file.close();
     }
+
+    // Subtract mean from image
+    static float data[3 * INPUT_H * INPUT_W];
+    for (int i = 0; i < 3 * INPUT_H * INPUT_W; i++)
+        data[i] = 1.0;
+
+    // Run inference
+    static float prob[OUTPUT_SIZE];
 
     // create a runtime (required for deserialization of model) with NVIDIA's logger
     IRuntime *runtime = createInferRuntime(gLogger);
@@ -102,34 +111,29 @@ void performInference() {
     IExecutionContext *context = engine->createExecutionContext();
     assert(context != nullptr);
 
-    float out[1];  // array for output
-    float data[1]; // array for input
-    for (float &i: data)
-        i = 12.0;   // put any value for input
-
-    // time the execution
-    auto start = std::chrono::system_clock::now();
-
-    // do inference using the parameters
-    doInference(*context, data, out, 1);
-
-    // time the execution
-    auto end = std::chrono::system_clock::now();
-    std::cout << "\n[INFO]: Time taken by execution: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-
+    for (int i = 0; i < 100; i++) {
+        auto start = std::chrono::system_clock::now();
+        doInference(*context, data, prob, 1);
+        auto end = std::chrono::system_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+    }
 
     // free the captured space
     context->destroy();
     engine->destroy();
     runtime->destroy();
 
-    std::cout << "\nInput:\t" << data[0];
-    std::cout << "\nOutput:\t";
-    for (float i: out) {
-        std::cout << i;
+    // Print histogram of the output distribution
+    std::cout << "\nOutput:\n\n";
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        std::cout << prob[i] << ", ";
     }
     std::cout << std::endl;
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        std::cout << prob[OUTPUT_SIZE - 10 + i] << ", ";
+    }
 }
 
 int main(int argc, char **argv) {

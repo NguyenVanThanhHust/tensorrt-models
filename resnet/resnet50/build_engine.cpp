@@ -153,7 +153,7 @@ ICudaEngine *createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilder
     std::cout << "[INFO]: Creating MLP using TensorRT..." << std::endl;
 
     // Load Weights from relevant file
-    std::map<std::string, Weights> weightMap = loadWeights("../resnet34.wts");
+    std::map<std::string, Weights> weightMap = loadWeights("../resnet50.wts");
 
     // Create an empty network
     INetworkDefinition *network = builder->createNetworkV2(0U);
@@ -245,6 +245,7 @@ void APIToModel(unsigned int maxBatchSize, IHostMemory **modelStream) {
 
     // free up the memory
     engine->destroy();
+    config->destroy();
     builder->destroy();
 }
 
@@ -263,7 +264,7 @@ void performSerialization() {
     std::cout << "[INFO]: Writing engine into binary..." << std::endl;
 
     // Open the file and write the contents there in binary format
-    std::ofstream p("resnet34.engine", std::ios::binary);
+    std::ofstream p("resnet50.engine", std::ios::binary);
     if (!p) {
         std::cerr << "could not open plan output file" << std::endl;
         return;
@@ -274,7 +275,7 @@ void performSerialization() {
     modelStream->destroy();
 
     std::cout << "[INFO]: Successfully created TensorRT engine..." << std::endl;
-    std::cout << "\n\tRun inference using `./resnet -d`" << std::endl;
+    std::cout << "\n\tRun inference using `./resnet -d" << std::endl;
 
 }
 
