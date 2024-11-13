@@ -265,7 +265,7 @@ void performSerialization() {
     IHostMemory *modelStream{nullptr};
 
     // Write model into stream
-    APIToModel(1, &modelStream);
+    APIToModel(16, &modelStream);
     assert(modelStream != nullptr);
 
 
