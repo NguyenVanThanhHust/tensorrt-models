@@ -1,14 +1,14 @@
+from resnet34 import resnet34
 import torch
-from torch import nn
-import torchvision
-import os
-import struct
 from torchsummary import summary
+import struct
 
+if __name__ == '__main__':
+    model_path = 'resnet_best.pth'
+    net = resnet34(num_classes=100, pretrained=model_path)
+    print("model_structure")
+    print(net)
 
-def main():
-    print("cuda device count: ", torch.cuda.device_count())
-    net = torchvision.models.resnet34(weights="ResNet34_Weights.IMAGENET1K_V1")
     net = net.to("cuda:0")
     net.eval()
     print("model: ", net)
@@ -30,7 +30,3 @@ def main():
             f.write(" ")
             f.write(struct.pack(">f", float(vv)).hex())
         f.write("\n")
-
-
-if __name__ == "__main__":
-    main()

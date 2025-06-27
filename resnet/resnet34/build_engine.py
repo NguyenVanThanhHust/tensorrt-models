@@ -8,10 +8,10 @@ import tensorrt as trt
 BATCH_SIZE = 1
 INPUT_H = 224
 INPUT_W = 224
-OUTPUT_SIZE = 1000
+OUTPUT_SIZE = 100
 
-INPUT_BLOB_NAME = "data"
-OUTPUT_BLOB_NAME = "prob"
+INPUT_BLOB_NAME = "input"
+OUTPUT_BLOB_NAME = "output"
 
 EPS = 1e-5
 

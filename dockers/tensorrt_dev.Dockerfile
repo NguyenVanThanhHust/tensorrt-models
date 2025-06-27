@@ -1,7 +1,6 @@
-FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel
+FROM nvcr.io/nvidia/pytorch:23.08-py3
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install some basic utilities
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
@@ -14,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     mesa-utils \
     subversion \
-    nano \
+    vim \
     terminator \
     xterm \
     wget \
@@ -25,20 +24,5 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt install build-essential software-properties-common -y
-WORKDIR /opt/   
-
-COPY lib/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz /opt/
-WORKDIR /opt
-RUN tar -xvf TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz
-RUN apt-get update
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/TensorRT-8.6.1.6/lib/
-WORKDIR /opt/TensorRT-8.6.1.6/python/
-RUN python3 --version
-RUN python3 -m pip install tensorrt-8.6.1-cp311-none-linux_x86_64.whl
-RUN rm /opt/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz
-
-RUN python3 -m pip install opencv-python
-RUN python3 -m pip install python-dotenv sqlalchemy loguru
-
+RUN pip install pycuda
 WORKDIR /workspace/

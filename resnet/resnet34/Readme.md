@@ -1,3 +1,21 @@
+# Custom resnet 34
+Get trained pytorch model from [image-classification](https://github.com/NguyenVanThanhHust/image-classification)
+
+Get .wts file
+```
+python get_wts.py
+```
+
+Build the engine
+```
+python build_engine.py
+```
+
+Run program
+```
+python infer.py
+```
+
 To build with c++
 run command
 ```
